@@ -23,7 +23,7 @@ ghc-options:
 
 extra-deps:
   - persistent-2.11.0.1
-  - persistent-postgresql-2.11.0.0
+  - persistent-postgresql-2.11.0.1
   - persistent-template-2.9.1.0
 
   - esqueleto-3.4.0.1
