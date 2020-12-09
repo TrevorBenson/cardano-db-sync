@@ -36,6 +36,7 @@ module Cardano.Db.Query
   , querySlotNosGreaterThan
   , querySlotUtcTime
   , queryTotalSupply
+  , queryTxByTxId
   , queryTxCount
   , queryTxId
   , queryTxInCount
@@ -83,7 +84,7 @@ import           Database.Esqueleto (Entity (..), From, InnerJoin (..), LeftOute
                    entityKey, entityVal, exists, from, in_, isNothing, just, limit, max_, min_,
                    notExists, not_, on, orderBy, select, subList_select, sum_, unSqlBackendKey,
                    unValue, val, where_, (&&.), (<=.), (==.), (>.), (^.), (||.))
-import           Database.Persist.Sql (SqlBackend)
+import           Database.Persist.Sql (SqlBackend, selectList)
 
 import           Cardano.Db.Error
 import           Cardano.Db.Schema
@@ -430,6 +431,12 @@ queryTxCount = do
             pure countRows
   pure $ maybe 0 unValue (listToMaybe res)
 
+queryTxByTxId :: MonadIO m => ByteString -> ReaderT SqlBackend m [Tx]
+queryTxByTxId hash = do
+  res <- select . from $ \ tx -> do
+            where_ (tx ^. TxHash ==. val hash)
+            pure tx
+  return $ entityVal <$> res
 
 -- | Get the 'TxId' associated with the given hash.
 queryTxId :: MonadIO m => ByteString -> ReaderT SqlBackend m (Either LookupFail TxId)

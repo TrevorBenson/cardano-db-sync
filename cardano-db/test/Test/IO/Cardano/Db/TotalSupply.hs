@@ -18,6 +18,7 @@ tests :: TestTree
 tests =
   testGroup "TotalSupply"
     [ testCase "Initial supply correct" initialSupplyTest
+    , testCase "InvalidHereafter" roundtripInvalidHereafter
     ]
 
 
@@ -39,8 +40,7 @@ initialSupplyTest =
 
     -- Spend from the Utxo set.
     bid1 <- insertBlock (mkBlock 1 slid)
-    tx1Id <- insertTx $
-                Tx
+    let tx = Tx
                   { txHash = mkTxHash bid1 1
                   , txBlockId = bid1
                   , txBlockIndex = 0
@@ -51,8 +51,31 @@ initialSupplyTest =
                   , txInvalidHereafter = Nothing
                   , txInvalidBefore = Nothing
                   }
+    tx1Id <- insertTx tx
     _ <- insertTxIn (TxIn tx1Id (head tx0Ids) 0)
     let addr = mkAddressHash bid1 tx1Id
     _ <- insertTxOut $ TxOut tx1Id 0 (Text.pack addr) (BS.pack addr) Nothing Nothing (DbLovelace 500000000)
     supply1 <- queryTotalSupply
     assertBool ("Total supply should be < " ++ show supply0) (supply1 < supply0)
+
+roundtripInvalidHereafter ::  IO ()
+roundtripInvalidHereafter =
+  runDbNoLogging $ do
+    deleteAllBlocksCascade
+    slid <- insertSlotLeader testSlotLeader
+    bid1 <- insertBlock (mkBlock 1 slid)
+    let tx = Tx
+                  { txHash = mkTxHash bid1 1
+                  , txBlockId = bid1
+                  , txBlockIndex = 0
+                  , txOutSum = DbLovelace 500000000
+                  , txFee = DbLovelace 100
+                  , txDeposit = 0
+                  , txSize = 100
+                  , txInvalidHereafter = Just 45
+                  , txInvalidBefore = Just 45
+                  }
+    _ <- insertTx tx
+    txs <- queryTxByTxId $ mkTxHash bid1 1
+    assertBool (show (txInvalidHereafter <$> txs) ++ "=\\=" ++ show [txInvalidHereafter tx])
+      $ (txInvalidHereafter <$> txs) == [txInvalidHereafter tx]
