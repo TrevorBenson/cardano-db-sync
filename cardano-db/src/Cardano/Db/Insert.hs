@@ -116,7 +116,7 @@ insertTreasury :: (MonadBaseControl IO m, MonadIO m) => Treasury -> ReaderT SqlB
 insertTreasury = insertByReturnKey "Treasury"
 
 insertTx :: (MonadBaseControl IO m, MonadIO m) => Tx -> ReaderT SqlBackend m TxId
-insertTx = insertByReturnKey "Tx"
+insertTx tx = insertByReturnKey (show tx) tx
 
 insertTxIn :: (MonadBaseControl IO m, MonadIO m) => TxIn -> ReaderT SqlBackend m TxInId
 insertTxIn = insertByReturnKey "TxIn"

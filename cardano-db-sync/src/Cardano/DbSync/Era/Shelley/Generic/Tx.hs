@@ -62,29 +62,29 @@ data Tx = Tx
   , txWithdrawals :: ![TxWithdrawal]
   , txParamProposal :: !(Maybe (Shelley.Update StandardShelley))
   , txMint :: !(Value StandardShelley)
-  }
+  } deriving Show
 
 data TxCertificate = TxCertificate
   { txcIndex :: !Word16
   , txcCert :: !(Shelley.DCert StandardShelley)
-  }
+  } deriving Show
 
 data TxWithdrawal = TxWithdrawal
   { txwRewardAccount :: !(Shelley.RewardAcnt StandardShelley)
   , txwAmount :: !Coin
-  }
+  } deriving Show
 
 data TxIn = TxIn
   { txInHash :: !ByteString
   , txInIndex :: !Word16
-  }
+  } deriving Show
 
 data TxOut = TxOut
   { txOutIndex :: !Word16
   , txOutAddress :: !(Shelley.Addr StandardShelley)
   , txOutAdaValue :: !Coin
   , txOutMaValue :: !(Map (PolicyID StandardShelley) (Map AssetName Integer))
-  }
+  } deriving Show
 
 fromAllegraTx :: (Word64, Shelley.Tx StandardAllegra) -> Tx
 fromAllegraTx (blkIndex, tx) =
