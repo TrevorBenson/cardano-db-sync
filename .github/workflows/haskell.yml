@@ -145,3 +145,4 @@ jobs:
 
     - name: Run tests
       run: cabal test --builddir="$CABAL_BUILDDIR" all -j1
+
