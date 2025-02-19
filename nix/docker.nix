@@ -93,7 +93,28 @@ let
         db-sync = pkgs.writeScriptBin "cardano-db-sync-${service.cluster}" ''
           #!${runtimeShell}
           set -euo pipefail
-          ${service.script} $@
+
+          handle_sigterm() {
+            echo "SIGTERM received. Sending SIGINT to process..."
+            if [[ -n "$process_id" ]]; then
+              kill -INT "$process_id" 2>/dev/null
+              echo "SIGINT sent. Exiting."
+            else
+              echo "No process id found. Exiting."
+              exit 1
+            fi
+            exit 0
+          }
+
+          trap handle_sigterm TERM
+
+          ${service.script} $@ &
+
+          process_id="$!"
+
+          while true; do
+            sleep 1  # Small sleep to avoid busy-waiting
+          done
         '' // {
           passthru = { inherit service; };
         };
